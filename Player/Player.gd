@@ -11,29 +11,33 @@ var velocity := Vector3.ZERO
 var last_wall : Vector3
 var last_wall_elapsed := 0.0
 
-# onready var move_plane : MovePlane = get_node("/root/Spatial/MovePlanes/MovePlane")
-var move_plane := MovePlane.new()
-var move_plane_flipped := false
-var move_plane_switch : MovePlaneSwitch
+var move_xform : Transform
+var direction_switch : DirectionSwitch
 
 func _ready() -> void:
-	add_child(move_plane)
-	move_plane.set_as_toplevel(true)
-	move_plane.global_transform = global_transform
+	move_xform = global_transform
 
 func _physics_process(delta: float) -> void:
-	# interpolate move plane
-	var move_plane_switches : Array = $MovePlaneSwitchSensor.get_overlapping_areas()
-	if move_plane_switches.size() > 0:
-		move_plane_switch = move_plane_switches[0]
-		move_plane.global_transform = move_plane_switch.interpolate(MovePlaneSwitch.SwitchDirection.XNeg, MovePlaneSwitch.SwitchDirection.XPos, global_transform.origin).global_transform
-	elif move_plane_switch:
-		move_plane.global_transform = move_plane_switch.closest(global_transform.origin).global_transform
-		move_plane_switch = null
-	global_transform.basis = move_plane.transform.basis
-	if move_plane_flipped:
-		global_transform.basis = global_transform.basis.rotated(Vector3.UP, -PI)
+	# interpolate move xform
+	var direction_switches : Array = $DirectionSwitchSensor.get_overlapping_areas()
+	if direction_switches.size() > 0:
+		if direction_switches.size() >= 2:
+			move_xform = direction_switches[0].interpolate_xform(global_transform)
+			move_xform = move_xform.interpolate_with(direction_switches[1].interpolate_xform(global_transform), 0.5)
+		else:
+			direction_switch = direction_switches[0]
+			move_xform = direction_switch.interpolate_xform(global_transform)
+	elif direction_switch:
+		move_xform = direction_switch.closest(global_transform)
+		direction_switch = null
+	if move_xform.basis.z.dot(global_transform.basis.z) < 0.0:
+		move_xform.basis = move_xform.basis.rotated(move_xform.basis.y, PI)
 
+	# HACK after a direction switch, the basis isn't quite perfect (fp precision error I think), causes snap not to work
+	global_transform.basis = fix_basis_precision(move_xform.basis)
+
+	var xform := global_transform
+	var xform_inv := xform.inverse()
 
 	# get inputs
 	var move := Vector3.ZERO
@@ -49,7 +53,7 @@ func _physics_process(delta: float) -> void:
 		var wall = null
 		for i in get_slide_count():
 			var coll := get_slide_collision(i)
-			var normal = global_transform.basis.inverse().xform(coll.normal)
+			var normal = xform_inv.basis.xform(coll.normal)
 			var normal_x := abs(normal.x)
 			if normal_x > max_normal_x:
 				max_normal_x = normal_x
@@ -67,19 +71,16 @@ func _physics_process(delta: float) -> void:
 	var target_velocity = lerp(velocity, move.normalized() * speed, accel * delta)
 
 	# prepare snap_vec
-	var snap_vec := Vector3.DOWN * 0.25
+	var snap_vec := xform.basis.y.normalized() * -0.25
 	if velocity_y > 0:
 		snap_vec = Vector3.ZERO
 
 	# apply move
-	velocity = global_transform.basis.inverse() * move_and_slide_with_snap(global_transform.basis * target_velocity, snap_vec, Vector3.UP, true)
+	velocity = xform_inv.basis * move_and_slide_with_snap(xform.basis * target_velocity, snap_vec, xform.basis.y, true)
 
-	# TODO lock local z axis
-	var plane := move_plane.get_plane()
-	var plane_isect = plane.intersects_ray(global_transform.origin, global_transform.basis.z)
-	if plane_isect == null:
-		plane_isect = plane.intersects_ray(global_transform.origin, -global_transform.basis.z)
-	velocity.x += (global_transform.basis.inverse() * move_and_slide((plane_isect - global_transform.origin) / delta, Vector3.UP, true)).x
+	# lock local z axis
+	var z_offset = (move_xform.inverse() * xform.origin).z
+	velocity.x += (xform_inv.basis * move_and_slide((move_xform.basis.z * -z_offset) / delta, xform.basis.y, true)).x
 
 	# jump
 	if on_floor && Input.is_action_just_pressed("jump"):
@@ -95,16 +96,44 @@ func _physics_process(delta: float) -> void:
 
 	# gravity
 	var grav : float = PhysicsServer.area_get_param(get_world().space, PhysicsServer.AREA_PARAM_GRAVITY)
+	if on_wall && move.dot(last_wall) < 0.0 && velocity_y < 0:
+		grav *= 0.5
 	velocity_y -= grav * delta
-	velocity_y = move_and_slide_with_snap(Vector3(0, velocity_y, 0), snap_vec, Vector3.UP).y
+	velocity_y = (xform_inv.basis * move_and_slide_with_snap(xform.basis.y * velocity_y, snap_vec, xform.basis.y)).y
 
 	# resolve velocity
 	velocity.y = velocity_y
 
 	# flip camera
 	if Input.is_action_just_pressed("move_up"):
-		move_plane_flipped = !move_plane_flipped
+		global_transform.basis = global_transform.basis.rotated(global_transform.basis.y, PI)
 		velocity.x *= -1
 		Engine.time_scale = 0.3
 		yield(get_tree().create_timer(0.5), "timeout")
 		Engine.time_scale = 1
+
+func fix_basis_precision(basis: Basis) -> Basis:
+	var epsilon := 0.0001
+
+	if abs(basis.x.x) < epsilon:
+		basis.x.x = 0
+	if abs(basis.x.y) < epsilon:
+		basis.x.y = 0
+	if abs(basis.x.z) < epsilon:
+		basis.x.z = 0
+
+	if abs(basis.y.x) < epsilon:
+		basis.y.x = 0
+	if abs(basis.y.y) < epsilon:
+		basis.y.y = 0
+	if abs(basis.y.z) < epsilon:
+		basis.y.z = 0
+
+	if abs(basis.z.x) < epsilon:
+		basis.z.x = 0
+	if abs(basis.z.y) < epsilon:
+		basis.z.y = 0
+	if abs(basis.z.z) < epsilon:
+		basis.z.z = 0
+
+	return basis

@@ -9,6 +9,16 @@
 config_version=4
 
 _global_script_classes=[ {
+"base": "Area",
+"class": "DirectionSwitch",
+"language": "GDScript",
+"path": "res://addons/DirectionSwitch/DirectionSwitch.gd"
+}, {
+"base": "EditorSpatialGizmoPlugin",
+"class": "DirectionSwitchGizmo",
+"language": "GDScript",
+"path": "res://addons/DirectionSwitch/DirectionSwitchGizmo.gd"
+}, {
 "base": "Spatial",
 "class": "LerpTransform",
 "language": "GDScript",
@@ -30,6 +40,8 @@ _global_script_classes=[ {
 "path": "res://Engine/MovePlaneSwitch.gd"
 } ]
 _global_script_class_icons={
+"DirectionSwitch": "",
+"DirectionSwitchGizmo": "",
 "LerpTransform": "",
 "MovePlane": "",
 "MovePlaneGizmo": "",
@@ -39,7 +51,7 @@ _global_script_class_icons={
 [application]
 
 config/name="3D Platformer"
-run/main_scene="res://TestScene.tscn"
+run/main_scene="res://TestScene2.tscn"
 config/icon="res://icon.png"
 
 [autoload]
@@ -50,13 +62,12 @@ CollisionLayers="*res://Engine/CollisionLayers.gd"
 
 window/size/width=480
 window/size/height=270
-window/size/fullscreen=true
 window/size/test_width=1440
 window/size/test_height=810
 
 [editor_plugins]
 
-enabled=PoolStringArray( "res://addons/move_plane/plugin.cfg" )
+enabled=PoolStringArray( "res://addons/DirectionSwitch/plugin.cfg", "res://addons/move_plane/plugin.cfg" )
 
 [input]
 
