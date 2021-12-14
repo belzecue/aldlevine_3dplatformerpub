@@ -1,17 +1,22 @@
-[gd_scene load_steps=12 format=2]
+[gd_scene load_steps=13 format=2]
 
 [ext_resource path="res://Engine/LerpTransform.gd" type="Script" id=1]
 [ext_resource path="res://Engine/CameraBoom.gd" type="Script" id=2]
 [ext_resource path="res://Player/Player.gd" type="Script" id=3]
 
 [sub_resource type="SpatialMaterial" id=9]
+params_cull_mode = 2
 albedo_color = Color( 0.64, 0.624, 0.48, 1 )
-roughness = 0.5
 
 [sub_resource type="CapsuleMesh" id=5]
 material = SubResource( 9 )
 radius = 0.25
 mid_height = 0.5
+
+[sub_resource type="CapsuleMesh" id=17]
+material = SubResource( 9 )
+radius = 0.25
+mid_height = 0.4
 
 [sub_resource type="CapsuleShape" id=6]
 radius = 0.25
@@ -31,7 +36,7 @@ _data = [ Vector2( 0, 0 ), 0.621488, 0.244156, 0, 0, Vector2( 1, 1 ), 1.4, 0.0, 
 _data = [ Vector2( 0, 0 ), 0.0, 0.512727, 0, 0, Vector2( 1, 1 ), 0.135248, 0.0, 0, 0 ]
 
 [sub_resource type="CylinderShape" id=16]
-radius = 0.01
+radius = 0.25
 height = 1.0
 
 [node name="Player" type="KinematicBody"]
@@ -46,6 +51,12 @@ transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0.5,
 mesh = SubResource( 5 )
 material/0 = null
 
+[node name="MeshInstance2" type="MeshInstance" parent="MeshInstance"]
+cast_shadow = 3
+mesh = SubResource( 17 )
+skeleton = NodePath("../..")
+material/0 = null
+
 [node name="CollisionShape" type="CollisionShape" parent="."]
 transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0.525, 0 )
 shape = SubResource( 6 )
@@ -55,7 +66,6 @@ transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0.05
 shape = SubResource( 15 )
 
 [node name="FloorArea" type="Area" parent="."]
-visible = false
 collision_layer = 0
 collision_mask = 2
 
@@ -82,7 +92,6 @@ size = 10.0
 [node name="DirectionSwitchSensor" type="Area" parent="."]
 collision_layer = 256
 collision_mask = 256
-monitorable = false
 
 [node name="CollisionShape" type="CollisionShape" parent="DirectionSwitchSensor"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0 )

@@ -1,8 +1,6 @@
 tool 
 
-extends EditorSpatialGizmoPlugin
-
-class_name DirectionSwitchGizmo
+class_name DirectionSwitchGizmo extends EditorSpatialGizmoPlugin
 
 var undo_redo : UndoRedo
 var circle_material := preload("GizmoCircle.material")
@@ -34,10 +32,15 @@ func redraw(gizmo: EditorSpatialGizmo) -> void:
 		var i = s * inc
 		var start := switch.interpolate(i)
 		var end := switch.interpolate(i + inc)
-		gizmo.add_lines(PoolVector3Array([start.origin, end.origin]), get_material("line", gizmo), false, Color.red)
-		gizmo.add_lines(PoolVector3Array([start.origin, start.origin + start.basis.z * 0.25]), get_material("line", gizmo), false, Color.red)
+		# base line
+		gizmo.add_lines(PoolVector3Array([start.origin, end.origin]), circle_material, false, Color.red)
+		# ticks
+		if s % 2 == 0:
+			gizmo.add_lines(PoolVector3Array([start.origin, start.origin + start.basis.y * 0.125]), circle_material, false, Color.greenyellow)
+			# gizmo.add_lines(PoolVector3Array([start.origin, start.origin + start.basis.z * 0.125]), circle_material, false, Color.lightblue)
 		if s == steps - 1:
-			gizmo.add_lines(PoolVector3Array([end.origin, end.origin + end.basis.z * 0.25]), get_material("line", gizmo), false, Color.red)
+			gizmo.add_lines(PoolVector3Array([end.origin, end.origin + end.basis.y * 0.125]), circle_material, false, Color.greenyellow)
+			# gizmo.add_lines(PoolVector3Array([end.origin, end.origin + end.basis.z * 0.125]), circle_material, false, Color.lightblue)
 
 	# draw base circle
 	for i in 360:
@@ -53,8 +56,25 @@ func redraw(gizmo: EditorSpatialGizmo) -> void:
 		var r2 := deg2rad(i + 1)
 		var p1 := Vector3(0, -cos(r1), sin(r1)) * 0.25
 		var p2 := Vector3(0, -cos(r2), sin(r2)) * 0.25
-		gizmo.add_lines(switch.xform_a.xform(PoolVector3Array([p1, p2])), circle_material, false, Color.red)
-		gizmo.add_lines(switch.xform_b.xform(PoolVector3Array([p1, p2])), circle_material, false, Color.blue)
+		gizmo.add_lines(switch.xform_a.xform(PoolVector3Array([p1, p2])), circle_material, false, Color.orange)
+		gizmo.add_lines(switch.xform_b.xform(PoolVector3Array([p1, p2])), circle_material, false, Color.purple)
+
+	# draw collider
+	var slices := switch.generate_collider_slices()
+	for i in slices.size():
+		var slice := slices[i] as PoolVector3Array
+		gizmo.add_lines(PoolVector3Array([slice[0], slice[1]]), circle_material, false, Color.darkslateblue)
+		gizmo.add_lines(PoolVector3Array([slice[1], slice[2]]), circle_material, false, Color.darkslateblue)
+		gizmo.add_lines(PoolVector3Array([slice[2], slice[3]]), circle_material, false, Color.darkslateblue)
+		gizmo.add_lines(PoolVector3Array([slice[3], slice[0]]), circle_material, false, Color.darkslateblue)
+		if i < slices.size() - 1:
+			var slice2 := slices[i + 1] as PoolVector3Array
+			gizmo.add_lines(PoolVector3Array([slice[0], slice2[0]]), circle_material, false, Color.darkslateblue)
+			gizmo.add_lines(PoolVector3Array([slice[1], slice2[1]]), circle_material, false, Color.darkslateblue)
+			gizmo.add_lines(PoolVector3Array([slice[2], slice2[2]]), circle_material, false, Color.darkslateblue)
+			gizmo.add_lines(PoolVector3Array([slice[3], slice2[3]]), circle_material, false, Color.darkslateblue)
+
+		
 
 func get_handle_name(gizmo: EditorSpatialGizmo, index: int) -> String:
 	return [
@@ -98,7 +118,7 @@ func set_handle(gizmo: EditorSpatialGizmo, index: int, camera: Camera, point: Ve
 				return
 			var isect_local : Vector3 = (switch.global_transform * xform).xform_inv(isect)
 
-			var angle := isect_local.signed_angle_to(Vector3.BACK, Vector3.LEFT)
+			var angle := isect_local.signed_angle_to(Vector3.UP, Vector3.LEFT)
 			angle = stepify(angle, PI / 8)
 			xform.basis = xform.basis.rotated(xform.basis.x, angle)
 

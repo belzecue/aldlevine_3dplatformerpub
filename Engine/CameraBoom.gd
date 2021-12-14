@@ -1,6 +1,5 @@
 extends Spatial
 
-
 onready var previous_transform = global_transform
 
 export var follow_speed_max := Vector2(10.0, 10.0)

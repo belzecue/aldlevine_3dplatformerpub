@@ -1,6 +1,4 @@
-extends Spatial
-
-class_name LerpTransform
+class_name LerpTransform extends Spatial
 
 export var lerp_speed := 5.0
 

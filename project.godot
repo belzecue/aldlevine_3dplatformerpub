@@ -19,10 +19,20 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://addons/DirectionSwitch/DirectionSwitchGizmo.gd"
 }, {
+"base": "KinematicBody",
+"class": "Entity",
+"language": "GDScript",
+"path": "res://Engine/Entity.gd"
+}, {
 "base": "Spatial",
 "class": "LerpTransform",
 "language": "GDScript",
 "path": "res://Engine/LerpTransform.gd"
+}, {
+"base": "Resource",
+"class": "MatrixField",
+"language": "GDScript",
+"path": "res://Engine/MatrixField.gd"
 }, {
 "base": "Spatial",
 "class": "MovePlane",
@@ -34,18 +44,20 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://addons/move_plane/MovePlaneGizmo.gd"
 }, {
-"base": "Area",
-"class": "MovePlaneSwitch",
+"base": "Entity",
+"class": "Player",
 "language": "GDScript",
-"path": "res://Engine/MovePlaneSwitch.gd"
+"path": "res://Player/Player.gd"
 } ]
 _global_script_class_icons={
 "DirectionSwitch": "",
 "DirectionSwitchGizmo": "",
+"Entity": "",
 "LerpTransform": "",
+"MatrixField": "",
 "MovePlane": "",
 "MovePlaneGizmo": "",
-"MovePlaneSwitch": ""
+"Player": ""
 }
 
 [application]
@@ -104,7 +116,7 @@ buffering/agile_event_flushing=true
 [layer_names]
 
 3d_physics/layer_1="Default"
-3d_physics/layer_9="Move Plane Switch"
+3d_physics/layer_9="Direction Switch"
 
 [physics]
 

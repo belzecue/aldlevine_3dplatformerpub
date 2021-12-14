@@ -1,7 +1,9 @@
+tool
+
 extends Node
 
 var default := 0
-var move_plane_switch := 0
+var direction_switch := 0
 
 func _init() -> void:
 	for i in range(1, 33):
