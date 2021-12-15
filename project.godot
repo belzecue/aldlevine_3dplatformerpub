@@ -34,16 +34,6 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://Engine/MatrixField.gd"
 }, {
-"base": "Spatial",
-"class": "MovePlane",
-"language": "GDScript",
-"path": "res://addons/move_plane/MovePlane.gd"
-}, {
-"base": "EditorSpatialGizmoPlugin",
-"class": "MovePlaneGizmo",
-"language": "GDScript",
-"path": "res://addons/move_plane/MovePlaneGizmo.gd"
-}, {
 "base": "Entity",
 "class": "Player",
 "language": "GDScript",
@@ -55,8 +45,6 @@ _global_script_class_icons={
 "Entity": "",
 "LerpTransform": "",
 "MatrixField": "",
-"MovePlane": "",
-"MovePlaneGizmo": "",
 "Player": ""
 }
 
@@ -79,7 +67,7 @@ window/size/test_height=810
 
 [editor_plugins]
 
-enabled=PoolStringArray( "res://addons/DirectionSwitch/plugin.cfg", "res://addons/move_plane/plugin.cfg" )
+enabled=PoolStringArray( "res://addons/DirectionSwitch/plugin.cfg" )
 
 [input]
 
